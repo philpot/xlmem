@@ -6,8 +6,10 @@ import java.net.MalformedURLException;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
+import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.params.ModifiableSolrParams;
+import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.client.solrj.impl.XMLResponseParser;
 
 public class SolrLookup {
@@ -23,20 +25,41 @@ public class SolrLookup {
 	  // The following settings are provided here for completeness.
 	  // They will not normally be required, and should only be used 
 	  // after consulting javadocs to know whether they are truly required.
-	  server.setSoTimeout(1000);  // socket read timeout
-	  server.setDefaultMaxConnectionsPerHost(100);
-	  server.setMaxTotalConnections(100);
-	  server.setFollowRedirects(false);  // defaults to false
+	  // server.setSoTimeout(1000);  // socket read timeout
+	  // server.setDefaultMaxConnectionsPerHost(100);
+	  // server.setMaxTotalConnections(100);
+	  // server.setFollowRedirects(false);  // defaults to false
 	  // allowCompression defaults to false.
 	  // Server side must support gzip or deflate for this to have any effect.
-	  server.setAllowCompression(true);
+	  // server.setAllowCompression(true);
 	  
-	  ModifiableSolrParams params = new ModifiableSolrParams();
-      params.set("q", "1");
+	  // ModifiableSolrParams params = new ModifiableSolrParams();
+      // params.set("q", "1");
 
-      QueryResponse response = server.query(params);
+      // QueryResponse response = server.query(params);
+      // System.out.println("response = " + response);
+      
+      // #2
+	  String searchKey = null;
+	  if (args.length > 0) {
+		  searchKey = args[0];
+	  }	
+	  else {
+		  searchKey = "/tmp/test.txt";
+	  }
+      SolrQuery query = new SolrQuery();
+      query.setQuery(searchKey);
+      // query.addFilterQuery("cat:electronics","store:amazon.com");
+      query.setFields("id","score", "en_tokenized", "ko_tokenized", "en_content", "ko_content", "en_toktext", "ko_toktext");
+      query.setStart(0);    
+      query.set("defType", "edismax");
+      
+      QueryResponse response = server.query(query);
+      SolrDocumentList results = response.getResults();
+      for (int i = 0; i < results.size(); ++i) {
+        System.out.println(results.get(i));
+      }
 
-      System.out.println("response = " + response);
 
   }
 } 
