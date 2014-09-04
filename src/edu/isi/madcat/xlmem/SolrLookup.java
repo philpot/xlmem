@@ -35,7 +35,7 @@ public class SolrLookup {
 	}
 	
   public static void main(String[] args) throws SolrServerException, IOException {
-	  String serverUrl = "http://studio.isi.edu:8983/solr";
+	  String serverUrl = "http://studio.isi.edu:8983/solr/fishoil1";
 	  HttpSolrServer server = new HttpSolrServer(serverUrl);
 	  server.setMaxRetries(1); // defaults to 0.  > 1 not recommended.
 	  server.setConnectionTimeout(5000); // 5 seconds to establish TCP
@@ -69,9 +69,10 @@ public class SolrLookup {
 		  inputPathname = "/tmp/test.txt";
 	  }
 	  String searchKey = readFile(inputPathname).trim();
+	  searchKey = "wild";
 	  System.out.println("Input pathname [" + inputPathname + "] has contents [" + searchKey + "]");
       SolrQuery query = new SolrQuery();
-      query.setQuery(searchKey);
+      query.setQuery("en_toktext:" + searchKey);
       // query.addFilterQuery("cat:electronics","store:amazon.com");
       query.setFields("id","score", "en_tokenized", "ko_tokenized", "en_content", "ko_content", "en_toktext", "ko_toktext");
       query.setStart(0);    
