@@ -7,11 +7,13 @@ import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.response.QueryResponse;
 // import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.SolrDocumentList;
+import org.apache.solr.common.SolrDocument;
 import org.apache.solr.client.solrj.impl.XMLResponseParser;
 import java.io.IOException;
 import java.io.File;
 import java.util.Scanner;
 import java.net.URLEncoder;
+import edu.isi.madcat.xlmem.Levenshtein;
 
 public class SolrLookup {
 	
@@ -58,7 +60,6 @@ public class SolrLookup {
       // QueryResponse response = server.query(params);
       // System.out.println("response = " + response);
       
-      // #2
 	  String inputPathname = null;
 	  if (args.length > 0) {
 		  inputPathname = readFile(args[0]);
@@ -72,16 +73,19 @@ public class SolrLookup {
       query.setQuery("en_toktext:" + URLEncoder.encode(searchKey, "utf-8"));
       // query.addFilterQuery("cat:electronics","store:amazon.com");
       query.setFields("id","score", "en_tokenized", "ko_tokenized", "en_content", "ko_content", "en_toktext", "ko_toktext");
-      query.setStart(0);    
+      query.setStart(0);
+      query.setRows(100);
       query.set("defType", "edismax");
       
       QueryResponse response = server.query(query);
       SolrDocumentList results = response.getResults();
-      System.out.println("Query [" + searchKey + "] yields [" + results.size() + "] results");
+      results.getNumFound();
+      System.out.println("Query [" + searchKey + "] yields [" + results.size() + "] results, [" + results.getNumFound() + "] total found");
       for (int i = 0; i < results.size(); ++i) {
-        System.out.println(results.get(i));
+    	  	SolrDocument doc = results.get(i);
+    	  	String en_toktext = (String) doc.getFieldValue("en_toktext");
+    	  	int dist = Levenshtein.distance(searchKey, en_toktext);
+    	  	System.out.println("Doc [" + doc.getFieldValue("id") + "] has en_toktext [" + en_toktext + "] at dist [" + dist + "]");
       }
-
-
   }
 } 
