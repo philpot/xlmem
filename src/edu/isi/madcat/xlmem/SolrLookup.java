@@ -3,17 +3,38 @@ package edu.isi.madcat.xlmem;
 /* adapted from http://www.vogella.com/tutorials/MySQLJava/article.html */
 
 import java.net.MalformedURLException;
-import org.apache.solr.client.solrj.SolrServer;
+// import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.response.QueryResponse;
-import org.apache.solr.common.params.ModifiableSolrParams;
+// import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.client.solrj.impl.XMLResponseParser;
+import java.io.IOException;
+import java.io.File;
+import java.util.Scanner;
 
 public class SolrLookup {
-  public static void main(String[] args) throws MalformedURLException, SolrServerException {
+	
+	private static String readFile(String pathname) throws IOException {
+
+	    File file = new File(pathname);
+	    StringBuilder fileContents = new StringBuilder((int)file.length());
+	    Scanner scanner = new Scanner(file);
+	    String lineSeparator = System.getProperty("line.separator");
+
+	    try {
+	        while(scanner.hasNextLine()) {        
+	            fileContents.append(scanner.nextLine() + lineSeparator);
+	        }
+	        return fileContents.toString();
+	    } finally {
+	        scanner.close();
+	    }
+	}
+	
+  public static void main(String[] args) throws SolrServerException, IOException {
 	  String serverUrl = "http://studio.isi.edu:8983/solr";
 	  HttpSolrServer server = new HttpSolrServer(serverUrl);
 	  server.setMaxRetries(1); // defaults to 0.  > 1 not recommended.
@@ -40,13 +61,15 @@ public class SolrLookup {
       // System.out.println("response = " + response);
       
       // #2
-	  String searchKey = null;
+	  String inputPathname = null;
 	  if (args.length > 0) {
-		  searchKey = args[0];
+		  inputPathname = readFile(args[0]);
 	  }	
 	  else {
-		  searchKey = "/tmp/test.txt";
+		  inputPathname = "/tmp/test.txt";
 	  }
+	  String searchKey = readFile(inputPathname).trim();
+	  System.out.println("Input pathname [" + inputPathname + "] has contents [" + searchKey + "]");
       SolrQuery query = new SolrQuery();
       query.setQuery(searchKey);
       // query.addFilterQuery("cat:electronics","store:amazon.com");
@@ -56,6 +79,7 @@ public class SolrLookup {
       
       QueryResponse response = server.query(query);
       SolrDocumentList results = response.getResults();
+      System.out.println("Query [" + searchKey + "] yields [" + results.size() + "] results");
       for (int i = 0; i < results.size(); ++i) {
         System.out.println(results.get(i));
       }
