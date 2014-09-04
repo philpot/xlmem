@@ -1,6 +1,7 @@
 package edu.isi.madcat.xlmem;
 
 import java.net.MalformedURLException;
+
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -9,10 +10,14 @@ import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.client.solrj.impl.XMLResponseParser;
+
 import java.io.IOException;
 import java.io.File;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Scanner;
 import java.net.URLEncoder;
+
 import edu.isi.madcat.xlmem.Levenshtein;
 
 public class SolrLookup {
@@ -67,7 +72,7 @@ public class SolrLookup {
 	  else {
 		  inputPathname = "/tmp/test.txt";
 	  }
-	  String searchKey = readFile(inputPathname).trim();
+	  final String searchKey = readFile(inputPathname).trim();
 	  System.out.println("Input pathname [" + inputPathname + "] has contents [" + searchKey + "]");
       SolrQuery query = new SolrQuery();
       query.setQuery("en_toktext:" + URLEncoder.encode(searchKey, "utf-8"));
@@ -81,6 +86,20 @@ public class SolrLookup {
       SolrDocumentList results = response.getResults();
       results.getNumFound();
       System.out.println("Query [" + searchKey + "] yields [" + results.size() + "] results, [" + results.getNumFound() + "] total found");
+      /* reorder the outputs according to (absolute, non-normalized) edit distance from the input searchKey */
+      Comparator<SolrDocument> comparator = new Comparator<SolrDocument>(){
+    		    @Override
+    		    public int compare(final SolrDocument sd1, final SolrDocument sd2){
+    		        // let your comparator look up your car's color in the custom order
+    		    	String en_toktext1 = (String) sd1.getFieldValue("en_toktext");
+    		    	String en_toktext2 = (String) sd2.getFieldValue("en_toktext");
+    		    	Integer d1 = (Integer)Levenshtein.distance(en_toktext1, searchKey);
+    		    	Integer d2 = (Integer)Levenshtein.distance(en_toktext2, searchKey);
+    		        return d1.compareTo(d2);
+    		    }
+    		};
+      Collections.sort(results, comparator);
+      
       for (int i = 0; i < results.size(); ++i) {
     	  	SolrDocument doc = results.get(i);
     	  	String en_toktext = (String) doc.getFieldValue("en_toktext");
