@@ -10,7 +10,7 @@ import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.client.solrj.impl.XMLResponseParser;
 
-public class MySolrAccess {
+public class SolrLookup {
   public static void main(String[] args) throws MalformedURLException, SolrServerException {
 	  String serverUrl = "http://studio.isi.edu:8983/solr";
 	  HttpSolrServer server = new HttpSolrServer(serverUrl);
