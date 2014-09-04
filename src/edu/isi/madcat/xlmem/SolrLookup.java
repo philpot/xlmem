@@ -1,9 +1,6 @@
 package edu.isi.madcat.xlmem;
 
-/* adapted from http://www.vogella.com/tutorials/MySQLJava/article.html */
-
 import java.net.MalformedURLException;
-// import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -14,6 +11,7 @@ import org.apache.solr.client.solrj.impl.XMLResponseParser;
 import java.io.IOException;
 import java.io.File;
 import java.util.Scanner;
+import java.net.URLEncoder;
 
 public class SolrLookup {
 	
@@ -69,10 +67,9 @@ public class SolrLookup {
 		  inputPathname = "/tmp/test.txt";
 	  }
 	  String searchKey = readFile(inputPathname).trim();
-	  searchKey = "wild";
 	  System.out.println("Input pathname [" + inputPathname + "] has contents [" + searchKey + "]");
       SolrQuery query = new SolrQuery();
-      query.setQuery("en_toktext:" + searchKey);
+      query.setQuery("en_toktext:" + URLEncoder.encode(searchKey, "utf-8"));
       // query.addFilterQuery("cat:electronics","store:amazon.com");
       query.setFields("id","score", "en_tokenized", "ko_tokenized", "en_content", "ko_content", "en_toktext", "ko_toktext");
       query.setStart(0);    
